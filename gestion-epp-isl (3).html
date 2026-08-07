@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EPP · ISL — Gestión de Elementos de Protección Personal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+  :root{
+    --steel:#26333A; --ink:#1B2124; --paper:#F4F2EC; --surface:#FFFFFF;
+    --safety:#F2A900; --alert:#C1440E; --line:#DAD6CC; --muted:#8A8478;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Inter',sans-serif;background:var(--paper);color:var(--ink);}
+  .font-display{font-family:'Barlow Condensed',sans-serif;font-weight:800;letter-spacing:.01em;}
+  #app{display:flex;min-height:100vh;}
+  aside{width:210px;flex-shrink:0;background:var(--ink);color:var(--paper);display:flex;flex-direction:column;}
+  aside .brand{padding:22px 20px 18px;border-bottom:1px solid rgba(255,255,255,.1);}
+  aside .brand .title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;color:var(--safety);line-height:1;}
+  aside .brand .sub{font-size:10.5px;color:rgba(255,255,255,.5);margin-top:4px;line-height:1.4;}
+  nav{flex:1;padding:10px 0;}
+  nav button{width:100%;text-align:left;background:none;border:none;color:rgba(255,255,255,.75);
+    padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:9px;font-family:inherit;}
+  nav button:hover{background:rgba(255,255,255,.06);color:#fff;}
+  nav button.active{background:var(--safety);color:var(--ink);font-weight:700;}
+  aside .foot{padding:14px 20px;border-top:1px solid rgba(255,255,255,.1);font-size:10px;color:rgba(255,255,255,.35);line-height:1.5;}
+  main{flex:1;padding:26px 32px;overflow-x:auto;min-width:0;}
+  h2.section-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;margin:0 0 4px;}
+  .eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-weight:600;margin-bottom:2px;}
+  .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:2px;}
+  .p4{padding:16px;} .p5{padding:20px;} .mb8{margin-bottom:28px;}
+  label.field{display:flex;flex-direction:column;gap:4px;}
+  label.field span{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600;}
+  input,select{border:1px solid var(--line);background:#fff;border-radius:2px;padding:8px 10px;font-size:13px;color:var(--ink);
+    font-family:inherit;width:100%;}
+  input:focus,select:focus{outline:none;border-color:var(--safety);box-shadow:0 0 0 3px rgba(242,169,0,.25);}
+  .btn{display:inline-flex;align-items:center;gap:7px;font-weight:600;border-radius:2px;border:none;cursor:pointer;
+    padding:10px 16px;font-size:13px;font-family:inherit;}
+  .btn-sm{padding:6px 10px;font-size:12px;}
+  .btn-primary{background:var(--ink);color:var(--safety);}
+  .btn-primary:hover{background:var(--steel);}
+  .btn-accent{background:var(--safety);color:var(--ink);}
+  .btn-accent:hover{background:#e0a000;}
+  .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--ink);}
+  .btn-danger{background:transparent;color:var(--alert);border:1px solid rgba(193,68,14,.4);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  table{width:100%;border-collapse:collapse;}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600;
+    padding:9px 10px;border-bottom:1px solid var(--line);}
+  td{padding:9px 10px;font-size:13px;border-bottom:1px solid #EEEBE3;}
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px;}
+  .kpi{padding:14px;} .kpi .lbl{font-size:10.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:4px;}
+  .kpi .val{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;}
+  .kpi.accent{border:2px solid var(--safety);}
+  .empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px 0;color:var(--muted);font-size:13px;text-align:center;}
+  .row-actions button{background:none;border:none;cursor:pointer;color:var(--muted);}
+  .row-actions button:hover{color:var(--alert);}
+  .icon-btn{background:none;border:none;cursor:pointer;color:var(--muted);padding:4px;}
+  .icon-btn:hover{color:var(--ink);}
+  .grid-form{display:grid;gap:10px;align-items:end;}
+  .item-box{background:#FAF9F5;border:1px solid #EEEBE3;border-radius:2px;padding:12px;margin-bottom:14px;}
+  .muted{color:var(--muted);}
+  .badge{display:inline-block;padding:2px 7px;border-radius:9px;font-size:10.5px;font-weight:600;}
+  .badge-low{background:rgba(193,68,14,.12);color:var(--alert);}
+  #toast{position:fixed;bottom:20px;right:20px;background:var(--ink);color:#fff;padding:12px 18px;border-radius:3px;font-size:13px;
+    z-index:999;box-shadow:0 6px 18px rgba(0,0,0,.25);display:none;max-width:360px;}
+  #toast.error{background:var(--alert);}
+  #loading-screen{position:fixed;inset:0;background:var(--paper);display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:10px;z-index:1000;font-size:13px;color:var(--muted);}
+  .spinner{width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--safety);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:24px;z-index:200;}
+  .receipt{background:#fff;width:297mm;max-height:90vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.3);font-family:Arial,Inter,sans-serif;color:var(--ink);}
+  .receipt-inner{padding:18px 22px;}
+  .receipt table{border-collapse:collapse;}
+  .receipt td, .receipt th{border:1px solid var(--ink);}
+  .rt-title{text-align:center;font-weight:bold;font-size:14px;text-transform:uppercase;border:1px solid var(--ink);padding:6px;margin-bottom:2px;}
+  .rt-small{font-size:9px;text-align:right;margin-bottom:2px;}
+  .rt-info td{font-size:10.5px;padding:4px 8px;}
+  .rt-grid th{font-size:9.5px;text-transform:uppercase;font-weight:bold;padding:5px;text-align:center;}
+  .rt-grid td{font-size:10.5px;padding:4px 6px;height:20px;}
+  .modal-actions{position:absolute;top:24px;right:24px;display:flex;gap:8px;}
+  @media print{
+    .no-print{display:none !important;}
+    .modal-bg{position:static;background:#fff;padding:0;}
+    .receipt{width:100%;max-height:none;box-shadow:none;overflow:visible;}
+    @page{size:landscape;margin:8mm;}
+  }
+  ::placeholder{color:#B7B2A5;}
+</style>
+</head>
+<body>
+
+<div id="loading-screen"><div class="spinner"></div><div id="loading-text">Conectando con Google Sheets…</div></div>
+<div id="app" style="display:none;"></div>
+<div id="toast"></div>
+
+<script>
+/* ============================================================
+   CONFIGURACIÓN — ISL · EPP
+   ============================================================ */
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyjakONmHjRQSfdkPCkEjQGbbS36jcm1swX3nmkYqEsM6Sv90PpFaYr2ncOjMIRknVVGg/exec";
+
+const CATEGORIAS = ["Cabeza","Ojos/Rostro","Auditiva","Respiratoria","Manos","Pies","Cuerpo","Altura/Anticaídas","Otros"];
+const UNIDADES = ["unidad","par","juego"];
+const LOGO_ISL = "data:image/png;base64,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";
+
+/* ============================================================ STATE + UTIL */
+const state = { tab:"dashboard", data:{}, receipt:null };
+const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+const todayISO = () => new Date().toISOString().slice(0,10);
+const monthNow = () => new Date().toISOString().slice(0,7);
+const num = (v) => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+const money = (n) => (n||0).toLocaleString("es-AR",{style:"currency",currency:"ARS",maximumFractionDigits:0});
+const numFmt = (n,d=0) => (n||0).toLocaleString("es-AR",{maximumFractionDigits:d});
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+function toast(msg, isError){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = isError ? 'error' : '';
+  t.style.display = 'block';
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>{ t.style.display='none'; }, isError ? 6000 : 3000);
+}
+
+async function loadAll(){
+  const resp = await fetch(`${APPS_SCRIPT_URL}?action=read`);
+  const json = await resp.json();
+  if(!resp.ok || !json.ok) throw new Error((json && json.error) || "Error leyendo la planilla");
+  state.data = json.data;
+}
+async function saveEntity(name, rows){
+  const payload = encodeURIComponent(JSON.stringify({sheet:name, rows}));
+  const resp = await fetch(`${APPS_SCRIPT_URL}?action=write&payload=${payload}`);
+  const json = await resp.json();
+  if(!resp.ok || !json.ok) throw new Error((json && json.error) || `Error guardando ${name}`);
+  state.data[name] = rows;
+}
+
+/* lookups */
+const nameOf = (arr, id, field) => (arr.find(x=>x.id===id) || {})[field] || "—";
+const nombreArt = (id) => nameOf(state.data.Catalogo, id, "denominacion");
+const artOf = (id) => state.data.Catalogo.find(a=>a.id===id);
+const nombreObra = (id) => nameOf(state.data.Obras, id, "nombre");
+const nombreProv = (id) => nameOf(state.data.Proveedores, id, "nombre");
+const nombreEmp = (id) => nameOf(state.data.Personal, id, "nombre");
+
+/* ============================================================ COST ENGINE */
+function costoUnitPromedio(){
+  const map = {};
+  for(const it of state.data.CompraItems){
+    if(!map[it.articuloId]) map[it.articuloId] = {qty:0,total:0};
+    map[it.articuloId].qty += num(it.cantidad);
+    map[it.articuloId].total += num(it.cantidad)*num(it.precioUnitario);
+  }
+  const out = {};
+  Object.keys(map).forEach(k=> out[k] = map[k].qty>0 ? map[k].total/map[k].qty : 0);
+  return out;
+}
+function stockCentral(){
+  const s = {};
+  for(const it of state.data.CompraItems) s[it.articuloId] = (s[it.articuloId]||0) + num(it.cantidad);
+  for(const it of state.data.EnvioItems) s[it.articuloId] = (s[it.articuloId]||0) - num(it.cantidad);
+  return s;
+}
+function stockObra(){
+  const s = {};
+  for(const it of state.data.EnvioItems){
+    const env = state.data.Envios.find(e=>e.id===it.envioId); if(!env) continue;
+    s[env.obraId] = s[env.obraId] || {};
+    s[env.obraId][it.articuloId] = (s[env.obraId][it.articuloId]||0) + num(it.cantidad);
+  }
+  for(const it of state.data.EntregaItems){
+    const en = state.data.Entregas.find(e=>e.id===it.entregaId); if(!en) continue;
+    s[en.obraId] = s[en.obraId] || {};
+    s[en.obraId][it.articuloId] = (s[en.obraId][it.articuloId]||0) - num(it.cantidad);
+  }
+  return s;
+}
+function itemsOfCompra(compraId){ return state.data.CompraItems.filter(i=>i.compraId===compraId); }
+function itemsOfEnvio(envioId){ return state.data.EnvioItems.filter(i=>i.envioId===envioId); }
+function itemsOfEntrega(entregaId){ return state.data.EntregaItems.filter(i=>i.entregaId===entregaId); }
+function costoEntrega(entregaId, cup){
+  return itemsOfEntrega(entregaId).reduce((a,it)=> a + num(it.cantidad)*(cup[it.articuloId]||0), 0);
+}
+function costoTotalCompras(){
+  return state.data.CompraItems.reduce((a,it)=> a + num(it.cantidad)*num(it.precioUnitario), 0);
+}
+
+/* ============================================================ RENDER ROUTER */
+const TABS = [
+  {id:"dashboard", label:"Panel"},
+  {id:"catalogo", label:"Catálogo EPP"},
+  {id:"obras", label:"Obras"},
+  {id:"proveedores", label:"Proveedores"},
+  {id:"compras", label:"Compras"},
+  {id:"envios", label:"Envíos a obra"},
+  {id:"personal", label:"Personal"},
+  {id:"entregas", label:"Entregas"},
+  {id:"hh", label:"HH mensuales"},
+  {id:"reportes", label:"Reportes"},
+  {id:"empresa", label:"Datos de empresa"},
+];
+
+function renderApp(){
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    <aside class="no-print">
+      <div class="brand">
+        <img src="${LOGO_ISL}" alt="ISL" style="height:34px;margin-bottom:10px;display:block;">
+        <div class="title">ISL · EPP</div>
+        <div class="sub">Gestión de elementos<br>de protección personal</div>
+      </div>
+      <nav>${TABS.map(t=>`<button data-tab="${t.id}" class="${state.tab===t.id?'active':''}">${esc(t.label)}</button>`).join('')}</nav>
+      <div class="foot">Instrumental San Lorenzo S.R.L.<br>Conectado a Google Sheets — datos compartidos entre usuarios.
+        <div style="margin-top:8px;"><button id="btn-refresh" class="btn btn-ghost btn-sm" style="color:#fff;border-color:rgba(255,255,255,.3);">↻ Actualizar</button></div>
+      </div>
+    </aside>
+    <main class="no-print" id="main"></main>
+    <div id="modal-root"></div>
+  `;
+  document.querySelectorAll('nav button').forEach(b=>{
+    b.addEventListener('click', ()=>{ state.tab = b.dataset.tab; renderApp(); });
+  });
+  document.getElementById('btn-refresh').addEventListener('click', async ()=>{
+    toast("Actualizando desde Google Sheets…");
+    try{ await loadAll(); renderApp(); toast("Datos actualizados."); }
+    catch(e){ toast("Error al actualizar: "+e.message, true); }
+  });
+  const main = document.getElementById('main');
+  const renderers = {
+    dashboard: renderDashboard, catalogo: renderCatalogo, obras: renderObras,
+    proveedores: renderProveedores, compras: renderCompras, envios: renderEnvios,
+    personal: renderPersonal, entregas: renderEntregas, hh: renderHH,
+    reportes: renderReportes, empresa: renderEmpresa,
+  };
+  main.innerHTML = renderers[state.tab]();
+  attachHandlers[state.tab] && attachHandlers[state.tab]();
+  if(state.receipt) renderReceiptModal();
+}
+const attachHandlers = {};
+
+function sectionHead(eyebrow, title, actionHtml){
+  return `<div class="section-head"><div>${eyebrow?`<div class="eyebrow">${esc(eyebrow)}</div>`:''}<h2 class="section-title">${esc(title)}</h2></div>${actionHtml||''}</div>`;
+}
+function emptyState(text){ return `<div class="empty">${esc(text)}</div>`; }
+
+/* ============================================================ DASHBOARD */
+function renderDashboard(){
+  const cup = costoUnitPromedio();
+  const sc = stockCentral();
+  const costoPorObra = {};
+  for(const en of state.data.Entregas) costoPorObra[en.obraId] = (costoPorObra[en.obraId]||0) + costoEntrega(en.id, cup);
+  const topObras = Object.entries(costoPorObra).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxCosto = topObras.length ? topObras[0][1] : 1;
+  const bajoStock = state.data.Catalogo.filter(a => (sc[a.id]||0) <= 0);
+
+  return `
+    ${sectionHead("Resumen general","Panel de control")}
+    <div class="kpi-grid">
+      <div class="card kpi accent"><div class="lbl">Total comprado</div><div class="val">${money(costoTotalCompras())}</div></div>
+      <div class="card kpi"><div class="lbl">Artículos en catálogo</div><div class="val">${state.data.Catalogo.length}</div></div>
+      <div class="card kpi"><div class="lbl">Entregas registradas</div><div class="val">${state.data.Entregas.length}</div></div>
+      <div class="card kpi"><div class="lbl">Personal activo</div><div class="val">${state.data.Personal.length}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+      <div class="card p5">
+        <div class="font-display" style="font-size:18px;margin-bottom:12px;">Costo EPP por obra</div>
+        ${topObras.length===0 ? emptyState("Sin entregas registradas aún.") : `
+          <table><tbody>
+          ${topObras.map(([oid,costo])=>`
+            <tr><td style="width:32%;">${esc(nombreObra(oid))}</td>
+            <td><div style="height:8px;background:#EEEBE3;border-radius:2px;overflow:hidden;"><div style="height:100%;background:var(--safety);width:${(costo/maxCosto)*100}%;"></div></div></td>
+            <td style="text-align:right;font-weight:600;width:110px;">${money(costo)}</td></tr>`).join('')}
+          </tbody></table>`}
+      </div>
+      <div class="card p5">
+        <div class="font-display" style="font-size:18px;margin-bottom:12px;">⚠ Stock central en cero o negativo</div>
+        ${bajoStock.length===0 ? emptyState("Todo el catálogo tiene stock disponible.") : `
+          <table><thead><tr><th>Artículo</th><th style="text-align:right;">Stock</th></tr></thead><tbody>
+          ${bajoStock.slice(0,8).map(a=>`<tr><td>${esc(a.denominacion)}</td><td style="text-align:right;"><span class="badge badge-low">${sc[a.id]||0}</span></td></tr>`).join('')}
+          </tbody></table>`}
+      </div>
+    </div>`;
+}
+
+/* ============================================================ CATÁLOGO */
+function renderCatalogo(){
+  return `
+    ${sectionHead("Denominación interna ISL","Catálogo de EPP")}
+    <div class="card p4 mb8">
+      <div class="grid-form" style="grid-template-columns:1fr 160px 120px;margin-bottom:12px;">
+        <label class="field"><span>Denominación interna</span><input id="c-denom" placeholder="Ej: Botín de seguridad con puntera"></label>
+        <label class="field"><span>Categoría</span><select id="c-cat">${CATEGORIAS.map(c=>`<option>${c}</option>`).join('')}</select></label>
+        <label class="field"><span>Unidad</span><select id="c-unidad">${UNIDADES.map(u=>`<option>${u}</option>`).join('')}</select></label>
+      </div>
+      <div class="eyebrow" style="margin-bottom:8px;">Datos para la planilla oficial (Res. 299/11, Anexo I)</div>
+      <div class="grid-form" style="grid-template-columns:1fr 1fr 120px auto;">
+        <label class="field"><span>Tipo // Modelo</span><input id="c-tipo"></label>
+        <label class="field"><span>Marca</span><input id="c-marca"></label>
+        <label class="field"><span>Certificación</span><select id="c-cert"><option value="SI">SI</option><option value="NO">NO</option></select></label>
+        <button class="btn btn-accent" id="btn-add-art">+ Agregar</button>
+      </div>
+    </div>
+    <div id="catalogo-list">${renderCatalogoList()}</div>`;
+}
+function renderCatalogoList(){
+  if(state.data.Catalogo.length===0) return emptyState("Todavía no cargaste artículos en el catálogo.");
+  return `<div style="display:flex;flex-direction:column;gap:10px;">
+    ${state.data.Catalogo.map(a=>{
+      const maps = state.data.Mapeo.filter(m=>m.articuloId===a.id);
+      return `<div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;" data-toggle="${a.id}">
+          <div><div style="font-weight:600;font-size:14px;">${esc(a.denominacion)}</div>
+            <div style="font-size:11px;color:var(--muted);">${esc(a.categoria)} · ${esc(a.unidad)} · Marca: ${esc(a.marca||'—')} · Tipo/Modelo: ${esc(a.tipoModelo||'—')} · Certif.: ${esc(a.certificacion||'—')} · ${maps.length} nombre(s) de proveedor</div></div>
+          <div style="display:flex;gap:10px;">
+            <button class="icon-btn" data-edit="${a.id}">✎</button>
+            <button class="icon-btn" data-del-art="${a.id}">🗑</button>
+          </div>
+        </div>
+        <div class="art-detail" id="detail-${a.id}" style="display:none;padding:0 16px 16px;border-top:1px solid #EEEBE3;background:#FAF9F5;">
+          <div class="edit-box" id="edit-${a.id}" style="display:none;margin:12px 0;background:#fff;border:1px solid var(--line);padding:10px;">
+            <div class="eyebrow" style="margin-bottom:8px;">Editar datos para planilla oficial</div>
+            <div class="grid-form" style="grid-template-columns:1fr 1fr 120px auto;">
+              <label class="field"><span>Tipo // Modelo</span><input id="e-tipo-${a.id}" value="${esc(a.tipoModelo||'')}"></label>
+              <label class="field"><span>Marca</span><input id="e-marca-${a.id}" value="${esc(a.marca||'')}"></label>
+              <label class="field"><span>Certificación</span><select id="e-cert-${a.id}"><option value="SI" ${a.certificacion==='SI'?'selected':''}>SI</option><option value="NO" ${a.certificacion==='NO'?'selected':''}>NO</option></select></label>
+              <button class="btn btn-accent btn-sm" data-save-edit="${a.id}">Guardar</button>
+            </div>
+          </div>
+          <div class="eyebrow" style="margin:12px 0 8px;">Nombres de proveedor asociados</div>
+          ${maps.length? `<table>${maps.map(m=>`<tr><td style="width:160px;color:var(--muted);">${esc(nombreProv(m.proveedorId))}</td><td>"${esc(m.nombreProveedor)}"</td><td style="width:30px;text-align:right;"><button class="icon-btn" data-del-map="${m.id}">✕</button></td></tr>`).join('')}</table>`:''}
+          <div class="grid-form" style="grid-template-columns:180px 1fr auto;margin-top:8px;">
+            <select id="map-prov-${a.id}"><option value="">Proveedor…</option>${state.data.Proveedores.map(p=>`<option value="${p.id}">${esc(p.nombre)}</option>`).join('')}</select>
+            <input id="map-nombre-${a.id}" placeholder='Nombre que usa el proveedor'>
+            <button class="btn btn-ghost btn-sm" data-add-map="${a.id}">+ Asociar</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+attachHandlers.catalogo = function(){
+  document.getElementById('btn-add-art').addEventListener('click', async ()=>{
+    const denom = document.getElementById('c-denom').value.trim();
+    if(!denom){ toast("Ingresá la denominación interna.", true); return; }
+    const nuevo = {id:uid(), denominacion:denom, categoria:document.getElementById('c-cat').value,
+      unidad:document.getElementById('c-unidad').value, tipoModelo:document.getElementById('c-tipo').value,
+      marca:document.getElementById('c-marca').value, certificacion:document.getElementById('c-cert').value};
+    try{ await saveEntity('Catalogo', [...state.data.Catalogo, nuevo]); toast("Artículo agregado."); renderApp(); }
+    catch(e){ toast("Error: "+e.message, true); }
+  });
+  document.querySelectorAll('[data-toggle]').forEach(el=>el.addEventListener('click', ()=>{
+    const id = el.dataset.toggle;
+    const d = document.getElementById('detail-'+id);
+    d.style.display = d.style.display==='none' ? 'block' : 'none';
+  }));
+  document.querySelectorAll('[data-edit]').forEach(el=>el.addEventListener('click', (ev)=>{
+    ev.stopPropagation();
+    const id = el.dataset.edit;
+    document.getElementById('detail-'+id).style.display = 'block';
+    const box = document.getElementById('edit-'+id);
+    box.style.display = box.style.display==='none' ? 'block' : 'none';
+  }));
+  document.querySelectorAll('[data-save-edit]').forEach(el=>el.addEventListener('click', async ()=>{
+    const id = el.dataset.saveEdit;
+    const rows = state.data.Catalogo.map(a=> a.id===id ? {...a,
+      tipoModelo:document.getElementById('e-tipo-'+id).value,
+      marca:document.getElementById('e-marca-'+id).value,
+      certificacion:document.getElementById('e-cert-'+id).value } : a);
+    try{ await saveEntity('Catalogo', rows); toast("Datos actualizados."); renderApp(); }
+    catch(e){ toast("Error: "+e.message, true); }
+  }));
+  document.querySelectorAll('[data-del-art]').forEach(el=>el.addEventListener('click', async (ev)=>{
+    ev.stopPropagation();
+    if(!confirm("¿Eliminar este artículo del catálogo?")) return;
+    const id = el.dataset.delArt;
+    try{
+      await saveEntity('Catalogo', state.data.Catalogo.filter(a=>a.id!==id));
+      await saveEntity('Mapeo', state.data.Mapeo.filter(m=>m.articuloId!==id));
+      toast("Artículo eliminado."); renderApp();
+    }catch(e){ toast("Error: "+e.message, true); }
+  }));
+  document.querySelectorAll('[data-del-map]').forEach(el=>el.addEventListener('click', async ()=>{
+    try{ await saveEntity('Mapeo', state.data.Mapeo.filter(m=>m.id!==el.dataset.delMap)); renderApp(); }
+    catch(e){ toast("Error: "+e.message, true); }
+  }));
+  document.querySelectorAll('[data-add-map]').forEach(el=>el.addEventListener('click', async ()=>{
+    const artId = el.dataset.addMap;
+    const provId = document.getElementById('map-prov-'+artId).value;
+    const nombre = document.getElementById('map-nombre-'+artId).value.trim();
+    if(!provId || !nombre){ toast("Elegí proveedor y nombre.", true); return; }
+    try{
+      await saveEntity('Mapeo', [...state.data.Mapeo, {id:uid(), proveedorId:provId, nombreProveedor:nombre, articuloId:artId}]);
+      toast("Asociación creada."); renderApp();
+    }catch(e){ toast("Error: "+e.message, true); }
+  }));
+};
+
+/* ============================================================ OBRAS */
+function renderObras(){
+  return `
+    ${sectionHead("Sitios de trabajo","Obras")}
+    <div class="card p4 mb8">
+      <div class="grid-form" style="grid-template-columns:1fr 200px auto;">
+        <label class="field"><span>Nombre de la obra</span><input id="o-nombre" placeholder="Ej: Neo Rodas — Zárate"></label>
+        <label class="field"><span>Código interno</span><input id="o-codigo"></label>
+        <button class="btn btn-accent" id="btn-add-obra">+ Agregar</button>
+      </div>
+    </div>
+    ${state.data.Obras.length===0 ? emptyState("Sin obras cargadas.") : `
+      <div class="card"><table><thead><tr><th>Obra</th><th>Código</th><th style="width:40px;"></th></tr></thead><tbody>
+      ${state.data.Obras.map(o=>`<tr><td style="font-weight:600;">${esc(o.nombre)}</td><td>${esc(o.codigo)}</td>
+        <td class="row-actions"><button data-del-obra="${o.id}">🗑</button></td></tr>`).join('')}
+      </tbody></table></div>`}`;
+}
+attachHandlers.obras = function(){
+  document.getElementById('btn-add-obra').addEventListener('click', async ()=>{
+    const nombre = document.getElementById('o-nombre').value.trim();
+    if(!nombre){ toast("Ingresá el nombre de la obra.", true); return; }
+    const nueva = {id:uid(), nombre, codigo:document.getElementById('o-codigo').value};
+    try{ await saveEntity('Obras', [...state.data.Obras, nueva]); toast("Obra agregada."); renderApp(); }
+    catch(e){ toast("Error: "+e.message, true); }
+  });
+  document.querySelectorAll('[data-del-obra]').forEach(el=>el.addEventListener('click', async ()=>{
+    if(!confirm("¿Eliminar esta obra?")) return;
+    try{ await saveEntity('Obras', state.data.Obras.filter(o=>o.id!==el.dataset.delObra)); renderApp(); }
+    catch(e){ toast("Error: "+e.message, true); }
+  }));
+};
+
+/* ============================================================ PROVEEDORES */
+function renderProveedores(){
+  return `
+    ${sectionHead("Contactos","Proveedores")}
+    <div class="card p4 mb8">
+      <div class="grid-form" style="grid-template-columns:1.4fr 1fr 1fr 1fr auto;">
+        <label class="field"><span>Nombre / Razón social</span><input id="p-nombre"></label>
+        <label class="field"><span>CUIT</span><input id="p-cuit"></label>
+        <label class="field"><span>Contacto</span><input id="p-contacto"></label>
+        <label class="field"><span>Teléfono</span><input id="p-tel"></label>
+        <button class="btn btn-accent" id="btn-add-prov">+ Agregar</button>
+      </div>
+    </div>
+    ${state.data.Proveedores.length===0 ? emptyState("Sin proveedores cargados.") : `
+      <div class="card"><table><thead><tr><th>Nombre</th><th>CUIT</th><th>Contacto</th><th>Teléfono</th><th style="width:40px;"></th></tr></thead><tbody>
+      ${state.data.Proveedores.map(p=>`<tr><td style="font-weight:600;">${esc(p.nombre)}</td><td>${esc(p.cuit)}</td><td>${esc(p.contacto)}</td><td>${esc(p.telefono)}</td>
+        <td class="row-actions"><button data-del-prov="${p.id}">🗑</button></td></tr>`).join('')}
+      </tbody></table></div>`}`;
+}
+attachHandlers.proveedores = function(){
+  document.getElementById('btn-add-prov').addEventListener('click', async ()=>{
+    const nombre = document.getElementById('p-nombre').value.trim();
+    if(!nombre){ toast("Ingresá el nombre del proveedor.", true); return; }
+    const nuevo = {id:uid(), nombre, cuit:document.getElementById('p-cuit').value,
+      contacto:document.getElementById('p-contacto').value, telefono:document.getElementById('p-tel').value};
+    try{ await saveEntity('Proveedores', [...state.data.Proveedores, nuevo]); toast("Proveedor agregado."); renderApp(); }
+    catch(e){ toast("Error: "+e.message, true); }
+  });
+  document.querySelectorAll('[data-del-prov]').forEach(el=>el.addEventListener('click', async ()=>{
+    if(!confirm("¿Eliminar este proveedor?")) return;
+    try{ await saveEntity('Proveedores', state.data.Proveedores.filter(p=>p.id!==el.dataset.delProv)); renderApp(); }
+    catch(e){ toast("Error: "+e.message, true); }
+  }));
+};
+
+/* ============================================================ PERSONAL */
+function renderPersonal(){
+  return `
+    ${sectionHead("Dotación","Personal")}
+    <div class="card p4 mb8">
+      <div class="grid-form" style="grid-template-columns:1.3fr 100px 110px 1fr 1fr auto;">
+        <label class="field"><span>Nombre y apellido</span><input id="pe-nombre"></label>
+        <label class="field"><span>Legajo</span><input id="pe-legajo"></label>
+        <label class="field"><span>DNI</span><input id="pe-dni"></label>
+        <label class="field"><span>Obra asignada</span><select id="pe-obra"><option value="">—</option>${state.data.Obras.map(o=>`<option value="${o.id}">${esc(o.nombre)}</option>`).join('')}</select></label>
+        <label class="field"><span>Puesto</span><input id="pe-puesto"></label>
+        <button class="btn btn-accent" id="btn-add-pers">+ Agregar</button>
+      </div>
+    </div>
+    ${state.data.Personal.length===0 ? emptyState("Sin personal cargado.") : `
+      <div class="card"><table><thead><tr><th>Nombre</th><th>Legajo</th><th>DNI</th><th>Obra</th><th>Puesto</th><th style="width:40px;"></th></tr></thead><tbody>
+      ${state.data.Personal.map(p=>`<tr><td style="font-weight:600;">${esc(p.nombre)}</td><td>${esc(p.legajo)}</td><td>${esc(p.dni)}</td>
+        <td>${esc(nombreObra(p.obraId))}</td><td>${esc(p.puesto)}</td>
+        <td class="row-actions"><button data-del-pers="${p.id}">🗑</button></td></tr>`).join('')}
+      </tbody></table></div>`}`;
+}
+attachHandlers.personal = function(){
+  document.getElementById('btn-add-pers').addEventListener('click', async ()=>{
+    const nombre = document.getElementById('pe-nombre').value.trim();
+    if(!nombre){ toast("Ingresá el nombre del empleado.", true); return; }
+    const nuevo = {id:uid(), nombre, legajo:document.getElementById('pe-legajo').value, dni:document.getElementById('pe-dni').value,
+      obraId:document.getElementById('pe-obra').value, puesto:document.getElementById('pe-puesto').value};
+    try{ await saveEntity('Personal', [...state.data.Personal, nuevo]); toast("Empleado agregado."); renderApp(); }
+    catch(e){ toast("Error: "+e.message, true); }
+  });
+  document.querySelectorAll('[data-del-pers]').forEach(el=>el.addEventListener('click', async ()=>{
+    if(!confirm("¿Eliminar este empleado?")) return;
+    try{ await saveEntity('Personal', state.data.Personal.filter(p=>p.id!==el.dataset.delPers)); renderApp(); }
+    catch(e){ toast("Error: "+e.message, true); }
+  }));
+};
+
+/* ============================================================ COMPRAS */
+let compraDraftItems = [];
+function renderCompras(){
+  const provId = document.getElementById && document.getElementById('cp-proveedor') ? document.getElementById('cp-proveedor').value : "";
+  const total = compraDraftItems.reduce((a,it)=>a+it.cantidad*it.precioUnitario,0);
+  return `
+    ${sectionHead("Ingreso de mercadería","Registrar compra")}
+    <div class="card p4 mb8">
+      <div class="grid-form" style="grid-template-columns:repeat(4,1fr);margin-bottom:14px;">
+        <label class="field"><span>Fecha</span><input type="date" id="cp-fecha" value="${todayISO()}"></label>
+        <label class="field" style="grid-column:span 2;"><span>Proveedor</span>
+          <select id="cp-proveedor"><option value="">Seleccionar proveedor…</option>${state.data.Proveedores.map(p=>`<option value="${p.id}">${esc(p.nombre)}</option>`).join('')}</select></label>
+        <label class="field"><span>N° factura / remito</span><input id="cp-factura"></label>
+      </div>
+      <div class="item-box">
+        <div class="eyebrow" style="margin-bottom:8px;">Agregar ítem de la factura</div>
+        <div class="grid-form" style="grid-template-columns:1.3fr 1.3fr 90px 130px auto;">
+          <label class="field"><span>Nombre según el proveedor</span><input id="cp-item-nombre" placeholder="Tal como figura en la factura" list="mapeos-list"></label>
+          <label class="field"><span>Denominación interna ISL</span><select id="cp-item-art"><option value="">Asociar a artículo…</option>${state.data.Catalogo.map(a=>`<option value="${a.id}">${esc(a.denominacion)}</option>`).join('')}</select></label>
+          <label class="field"><span>Cantidad</span><input type="number" min="0" id="cp-item-cant"></label>
+          <label class="field"><span>Precio unitario</span><input type="number" min="0" id="cp-item-precio"></label>
+          <button class="btn btn-ghost btn-sm" id="btn-add-item-compra">+ Sumar</button>
+        </div>
+        <datalist id="mapeos-list"></datalist>
+      </div>
+      <div id="compra-items-list"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid #EEEBE3;">
+        <label class="field" style="width:50%;"><span>Observaciones</span><input id="cp-obs"></label>
+        <div style="text-align:right;"><div class="eyebrow">Total compra</div><div class="font-display" style="font-size:22px;">${money(total)}</div></div>
+      </div>
+      <div style="margin-top:10px;text-align:right;"><button class="btn btn-accent" id="btn-save-compra">💾 Guardar compra</button></div>
+    </div>
+    ${sectionHead(null,"Compras registradas")}
+    ${state.data.Compras.length===0 ? emptyState("Sin compras registradas.") : `
+      <div style="display:flex;flex-direction:column;gap:8px;">
+      ${[...state.data.Compras].reverse().map(c=>{
+        const items = itemsOfCompra(c.id);
+        const t = items.reduce((a,it)=>a+num(it.cantidad)*num(it.precioUnitario),0);
+        return `<div class="card p4" style="display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-weight:600;font-size:13.5px;">${esc(nombreProv(c.proveedorId))} <span class="muted" style="font-weight:400;">· ${esc(c.fecha)} · Fact. ${esc(c.factura||'s/n')}</span></div>
+          <div style="font-size:12px;color:var(--muted);">${items.length} ítem(s): ${items.map(it=>esc(nombreArt(it.articuloId))).join(', ')}</div></div>
+          <div style="display:flex;align-items:center;gap:14px;"><div style="font-weight:600;">${money(t)}</div>
+          <button class="icon-btn" data-del-compra="${c.id}">🗑</button></div></div>`;
+      }).join('')}
+      </div>`}`;
+}
+function renderCompraItemsList(){
+  const el = document.getElementById('compra-items-list');
+  if(!el) return;
+  if(compraDraftItems.length===0){ el.innerHTML=''; return; }
+  el.innerHTML = `<table style="margin-bottom:10px;"><thead><tr><th>Nombre proveedor</th><th>Denominación ISL</th><th style="text-align:right;">Cant.</th><th style="text-align:right;">P.Unit.</th><th style="text-align:right;">Subtotal</th><th style="width:30px;"></th></tr></thead>
+  <tbody>${compraDraftItems.map((it,i)=>`<tr><td class="muted">${esc(it.nombreProveedor)}</td><td style="font-weight:600;">${esc(nombreArt(it.articuloId))}</td>
+    <td style="text-align:right;">${it.cantidad}</td><td style="text-align:right;">${money(it.precioUnitario)}</td>
+    <td style="text-align:right;">${money(it.cantidad*it.precioUnitario)}</td><td><button class="icon-btn" data-rm-item="${i}">✕</button></td></tr>`).join('')}</tbody></table>`;
+  el.querySelectorAll('[data-rm-item]').forEach(b=>b.addEventListener('click', ()=>{
+    compraDraftItems.splice(parseInt(b.dataset.rmItem),1);
+    renderCompraItemsList();
+    document.querySelector('.font-display[style*="22px"]').textContent = money(compraDraftItems.reduce((a,it)=>a+it.cantidad*it.precioUnitario,0));
+  }));
+}
+attachHandlers.compras = function(){
+  compraDraftItems = [];
+  const provSel = document.getElementById('cp-proveedor');
+  const updateDatalist = () => {
+    const dl = document.getElementById('mapeos-list');
+    const maps = state.data.Mapeo.filter(m=>m.proveedorId===provSel.value);
+    dl.innerHTML = maps.map(m=>`<option value="${esc(m.nombreProveedor)}">`).join('');
+  };
+  provSel.addEventListener('change', ()=>{ compraDraftItems=[]; renderCompraItemsList(); updateDatalist(); });
+  updateDatalist();
+  document.getElementById('cp-item-nombre').addEventListener('input', (e)=>{
+    const maps = state.data.Mapeo.filter(m=>m.proveedorId===provSel.value && m.nombreProveedor.toLowerCase()===e.target.value.toLowerCase());
+    if(maps.length) document.getElementById('cp-item-art').value = maps[0].articuloId;
+  });
+  document.getElementById('btn-add-item-compra').addEventListener('click', ()=>{
+    const nombreProveedor = document.getElementById('cp-item-nombre').value.trim();
+    const articuloId = document.getElementById('cp-item-art').value;
+    const cantidad = num(document.getElementById('cp-item-cant').value);
+    const precioUnitario = num(document.getElementById('cp-item-precio').value);
+    if(!articuloId || !cantidad || !precioUnitario){ toast("Completá artículo, cantidad y precio.", true); return; }
+    compraDraftItems.push({nombreProveedor, articuloId, cantidad, precioUnitario});
+    document.getElementById('cp-item-nombre').value=''; document.getElementById('cp-item-art').value='';
+    document.getElementById('cp-item-cant').value=''; document.getElementById('cp-item-precio').value='';
+    renderCompraItemsList();
+    const totalEl = [...document.querySelectorAll('.font-display')].find(e=>e.parentElement.querySelector('.eyebrow')?.textContent==='Total compra');
+    if(totalEl) totalEl.textContent = money(compraDraftItems.reduce((a,it)=>a+it.cantidad*it.precioUnitario,0));
+  });
+  document.getElementById('btn-save-compra').addEventListener('click', async ()=>{
+    const proveedorId = provSel.value;
+    if(!proveedorId || compraDraftItems.length===0){ toast("Elegí proveedor y agregá al menos un ítem.", true); return; }
+    const compraId = uid();
+    const nuevaCompra = {id:compraId, fecha:document.getElementById('cp-fecha').value, proveedorId,
+      factura:document.getElementById('cp-factura').value, observaciones:document.getElementById('cp-obs').value};
+    const nuevosMapeos = [];
+    for(const it of compraDraftItems){
+      if(it.nombreProveedor && !state.data.Mapeo.some(m=>m.proveedorId===proveedorId && m.nombreProveedor.toLowerCase()===it.nombreProveedor.toLowerCase())){
+        nuevosMapeos.push({id:uid(), proveedorId, nombreProveedor:it.nombreProveedor, articuloId:it.articuloId});
+      }
+    }
+    const nuevosItems = compraDraftItems.map(it=>({id:uid(), compraId, articuloId:it.articuloId, nombreProveedor:it.nombreProveedor, cantidad:it.cantidad, precioUnitario:it.precioUnitario}));
+    try{
+      await saveEntity('Compras', [...state.data.Compras, nuevaCompra]);
+      await saveEntity('CompraItems', [...state.data.CompraItems, ...nuevosItems]);
+      if(nuevosMapeos.length) await saveEntity('Mapeo', [...state.data.Mapeo, ...nuevosMapeos]);
+      compraDraftItems = [];
+      toast("Compra guardada."); renderApp();
+    }catch(e){ toast("Error: "+e.message, true); }
+  });
+  document.querySelectorAll('[data-del-compra]').forEach(el=>el.addEventListener('click', async ()=>{
+    if(!confirm("¿Eliminar esta compra y sus ítems?")) return;
+    const id = el.dataset.delCompra;
+    try{
+      await saveEntity('Compras', state.data.Compras.filter(c=>c.id!==id));
+      await saveEntity('CompraItems', state.data.CompraItems.filter(i=>i.compraId!==id));
+      renderApp();
+    }catch(e){ toast("Error: "+e.message, true); }
+  }));
+  renderCompraItemsList();
+};
+
+/* ============================================================ ENVÍOS */
+let envioDraftItems = [];
+function renderEnvios(){
+  const sc = stockCentral();
+  return `
+    ${sectionHead("Depósito central → obra","Registrar envío a obra")}
+    <div class="card p4 mb8">
+      <div class="grid-form" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px;">
+        <label class="field"><span>Fecha</span><input type="date" id="en-fecha" value="${todayISO()}"></label>
+        <label class="field"><span>Obra</span><select id="en-obra"><option value="">Seleccionar obra…</option>${state.data.Obras.map(o=>`<option value="${o.id}">${esc(o.nombre)}</option>`).join('')}</select></label>
+        <label class="field"><span>N° remito</span><input id="en-remito"></label>
+      </div>
+      <div class="item-box">
+        <div class="grid-form" style="grid-template-columns:1fr 130px 140px auto;">
+          <label class="field"><span>Artículo</span><select id="en-item-art"><option value="">Seleccionar…</option>${state.data.Catalogo.map(a=>`<option value="${a.id}">${esc(a.denominacion)} (stock: ${sc[a.id]||0})</option>`).join('')}</select></label>
+          <label class="field"><span>Cantidad</span><input type="number" min="0" id="en-item-cant"></label>
+          <div></div>
+          <button class="btn btn-ghost btn-sm" id="btn-add-item-envio">+ Sumar</button>
+        </div>
+      </div>
+      <div id="envio-items-list"></div>
+      <label class="field"><span>Observaciones</span><input id="en-obs"></label>
+      <div style="margin-top:10px;text-align:right;"><button class="btn btn-accent" id="btn-save-envio">💾 Guardar envío</button></div>
+    </div>
+    ${sectionHead(null,"Envíos registrados")}
+    ${state.data.Envios.length===0 ? emptyState("Sin envíos registrados.") : `
+      <div style="display:flex;flex-direction:column;gap:8px;">
+      ${[...state.data.Envios].reverse().map(e=>{
+        const items = itemsOfEnvio(e.id);
+        return `<div class="card p4" style="display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-weight:600;font-size:13.5px;">${esc(nombreObra(e.obraId))} <span class="muted" style="font-weight:400;">· ${esc(e.fecha)} · Remito ${esc(e.remito||'s/n')}</span></div>
+          <div style="font-size:12px;color:var(--muted);">${items.map(it=>esc(nombreArt(it.articuloId))+' ×'+it.cantidad).join(', ')}</div></div>
+          <button class="icon-btn" data-del-envio="${e.id}">🗑</button></div>`;
+      }).join('')}
+      </div>`}`;
+}
+function renderEnvioItemsList(){
+  const el = document.getElementById('envio-items-list');
+  if(!el) return;
+  if(envioDraftItems.length===0){ el.innerHTML=''; return; }
+  el.innerHTML = `<table style="margin-bottom:10px;"><thead><tr><th>Artículo</th><th style="text-align:right;">Cantidad</th><th style="width:30px;"></th></tr></thead>
+  <tbody>${envioDraftItems.map((it,i)=>`<tr><td>${esc(nombreArt(it.articuloId))}</td><td style="text-align:right;">${it.cantidad}</td><td><button class="icon-btn" data-rm-item="${i}">✕</button></td></tr>`).join('')}</tbody></table>`;
+  el.querySelectorAll('[data-rm-item]').forEach(b=>b.addEventListener('click', ()=>{ envioDraftItems.splice(parseInt(b.dataset.rmItem),1); renderEnvioItemsList(); }));
+}
+attachHandlers.envios = function(){
+  envioDraftItems = [];
+  document.getElementById('btn-add-item-envio').addEventListener('click', ()=>{
+    const articuloId = document.getElementById('en-item-art').value;
+    const cantidad = num(document.getElementById('en-item-cant').value);
+    if(!articuloId || !cantidad){ toast("Elegí artículo y cantidad.", true); return; }
+    envioDraftItems.push({articuloId, cantidad});
+    document.getElementById('en-item-art').value=''; document.getElementById('en-item-cant').value='';
+    renderEnvioItemsList();
+  });
+  document.getElementById('btn-save-envio').addEventListener('click', async ()=>{
+    const obraId = document.getElementById('en-obra').value;
+    if(!obraId || envioDraftItems.length===0){ toast("Elegí obra y agregá al menos un ítem.", true); return; }
+    const envioId = uid();
+    const nuevo = {id:envioId, fecha:document.getElementById('en-fecha').value, obraId, remito:document.getElementById('en-remito').value, observaciones:document.getElementById('en-obs').value};
+    const items = envioDraftItems.map(it=>({id:uid(), envioId, articuloId:it.articuloId, cantidad:it.cantidad}));
+    try{
+      await saveEntity('Envios', [...state.data.Envios, nuevo]);
+      await saveEntity('EnvioItems', [...state.data.EnvioItems, ...items]);
+      envioDraftItems = []; toast("Envío guardado."); renderApp();
+    }catch(e){ toast("Error: "+e.message, true); }
+  });
+  document.querySelectorAll('[data-del-envio]').forEach(el=>el.addEventListener('click', async ()=>{
+    if(!confirm("¿Eliminar este envío?")) return;
+    const id = el.dataset.delEnvio;
+    try{
+      await saveEntity('Envios', state.data.Envios.filter(e=>e.id!==id));
+      await saveEntity('EnvioItems', state.data.EnvioItems.filter(i=>i.envioId!==id));
+      renderApp();
+    }catch(e){ toast("Error: "+e.message, true); }
+  }));
+  renderEnvioItemsList();
+};
+
+/* ============================================================ ENTREGAS */
+let entregaDraftItems = [];
+function renderEntregas(){
+  const so = stockObra();
+  const cup = costoUnitPromedio();
+  return `
+    ${sectionHead("Entrega firmada al personal","Registrar entrega")}
+    <div class="card p4 mb8">
+      <div class="grid-form" style="grid-template-columns:repeat(3,1fr);margin-bottom:14px;">
+        <label class="field"><span>Fecha</span><input type="date" id="et-fecha" value="${todayISO()}"></label>
+        <label class="field"><span>Empleado</span><select id="et-empleado"><option value="">Seleccionar…</option>${state.data.Personal.map(p=>`<option value="${p.id}" data-obra="${p.obraId}">${esc(p.nombre)}${p.legajo?` (Leg. ${esc(p.legajo)})`:''}</option>`).join('')}</select></label>
+        <label class="field"><span>Obra</span><select id="et-obra"><option value="">Seleccionar obra…</option>${state.data.Obras.map(o=>`<option value="${o.id}">${esc(o.nombre)}</option>`).join('')}</select></label>
+      </div>
+      <div class="item-box">
+        <div class="grid-form" style="grid-template-columns:1fr 130px auto;">
+          <label class="field"><span>Artículo a entregar</span><select id="et-item-art"><option value="">Seleccionar…</option>${state.data.Catalogo.map(a=>`<option value="${a.id}">${esc(a.denominacion)}</option>`).join('')}</select></label>
+          <label class="field"><span>Cantidad</span><input type="number" min="0" id="et-item-cant"></label>
+          <button class="btn btn-ghost btn-sm" id="btn-add-item-entrega">+ Sumar</button>
+        </div>
+      </div>
+      <div id="entrega-items-list"></div>
+      <label class="field"><span>Observaciones</span><input id="et-obs"></label>
+      <div style="margin-top:10px;text-align:right;"><button class="btn btn-accent" id="btn-save-entrega">💾 Guardar y generar planilla</button></div>
+    </div>
+    ${sectionHead(null,"Entregas registradas")}
+    ${state.data.Entregas.length===0 ? emptyState("Sin entregas registradas.") : `
+      <div style="display:flex;flex-direction:column;gap:8px;">
+      ${[...state.data.Entregas].reverse().map(en=>{
+        const items = itemsOfEntrega(en.id);
+        return `<div class="card p4" style="display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-weight:600;font-size:13.5px;">${esc(nombreEmp(en.empleadoId))} <span class="muted" style="font-weight:400;">· ${esc(nombreObra(en.obraId))} · ${esc(en.fecha)}</span></div>
+          <div style="font-size:12px;color:var(--muted);">${items.map(it=>esc(nombreArt(it.articuloId))+' ×'+it.cantidad).join(', ')} · ${money(costoEntrega(en.id,cup))}</div></div>
+          <div style="display:flex;gap:12px;"><button class="icon-btn" data-print-entrega="${en.id}" title="Imprimir planilla">🖶</button><button class="icon-btn" data-del-entrega="${en.id}">🗑</button></div></div>`;
+      }).join('')}
+      </div>`}`;
+}
+function renderEntregaItemsList(){
+  const el = document.getElementById('entrega-items-list');
+  if(!el) return;
+  if(entregaDraftItems.length===0){ el.innerHTML=''; return; }
+  el.innerHTML = `<table style="margin-bottom:10px;"><thead><tr><th>Artículo</th><th style="text-align:right;">Cantidad</th><th style="width:30px;"></th></tr></thead>
+  <tbody>${entregaDraftItems.map((it,i)=>`<tr><td>${esc(nombreArt(it.articuloId))}</td><td style="text-align:right;">${it.cantidad}</td><td><button class="icon-btn" data-rm-item="${i}">✕</button></td></tr>`).join('')}</tbody></table>`;
+  el.querySelectorAll('[data-rm-item]').forEach(b=>b.addEventListener('click', ()=>{ entregaDraftItems.splice(parseInt(b.dataset.rmItem),1); renderEntregaItemsList(); }));
+}
+attachHandlers.entregas = function(){
+  entregaDraftItems = [];
+  document.getElementById('et-empleado').addEventListener('change', (e)=>{
+    const opt = e.target.selectedOptions[0];
+    if(opt && opt.dataset.obra) document.getElementById('et-obra').value = opt.dataset.obra;
+  });
+  document.getElementById('btn-add-item-entrega').addEventListener('click', ()=>{
+    const articuloId = document.getElementById('et-item-art').value;
+    const cantidad = num(document.getElementById('et-item-cant').value);
+    if(!articuloId || !cantidad){ toast("Elegí artículo y cantidad.", true); return; }
+    entregaDraftItems.push({articuloId, cantidad});
+    document.getElementById('et-item-art').value=''; document.getElementById('et-item-cant').value='';
+    renderEntregaItemsList();
+  });
+  document.getElementById('btn-save-entrega').addEventListener('click', async ()=>{
+    const empleadoId = document.getElementById('et-empleado').value;
+    const obraId = document.getElementById('et-obra').value;
+    if(!empleadoId || !obraId || entregaDraftItems.length===0){ toast("Completá empleado, obra y al menos un ítem.", true); return; }
+    const entregaId = uid();
+    const nueva = {id:entregaId, fecha:document.getElementById('et-fecha').value, empleadoId, obraId, observaciones:document.getElementById('et-obs').value};
+    const items = entregaDraftItems.map(it=>({id:uid(), entregaId, articuloId:it.articuloId, cantidad:it.cantidad}));
+    try{
+      await saveEntity('Entregas', [...state.data.Entregas, nueva]);
+      await saveEntity('EntregaItems', [...state.data.EntregaItems, ...items]);
+      entregaDraftItems = [];
+      toast("Entrega guardada."); state.receipt = entregaId; renderApp();
+    }catch(e){ toast("Error: "+e.message, true); }
+  });
+  document.querySelectorAll('[data-print-entrega]').forEach(el=>el.addEventListener('click', ()=>{ state.receipt = el.dataset.printEntrega; renderApp(); }));
+  document.querySelectorAll('[data-del-entrega]').forEach(el=>el.addEventListener('click', async ()=>{
+    if(!confirm("¿Eliminar esta entrega?")) return;
+    const id = el.dataset.delEntrega;
+    try{
+      await saveEntity('Entregas', state.data.Entregas.filter(e=>e.id!==id));
+      await saveEntity('EntregaItems', state.data.EntregaItems.filter(i=>i.entregaId!==id));
+      renderApp();
+    }catch(e){ toast("Error: "+e.message, true); }
+  }));
+  renderEntregaItemsList();
+};
+
+/* ============================================================ RECEIPT (Anexo I) */
+const TOTAL_FILAS = 18;
+function renderReceiptModal(){
+  const root = document.getElementById('modal-root');
+  const entrega = state.data.Entregas.find(e=>e.id===state.receipt);
+  if(!entrega){ root.innerHTML=''; return; }
+  const emp = state.data.Personal.find(p=>p.id===entrega.empleadoId) || {};
+  const empresa = state.data.Empresa[0] || {};
+  const fechaFmt = new Date(entrega.fecha+"T00:00:00").toLocaleDateString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric"});
+  let filas = itemsOfEntrega(entrega.id).map(it=>({art:artOf(it.articuloId), cantidad:it.cantidad}));
+  while(filas.length < TOTAL_FILAS) filas.push(null);
+
+  root.innerHTML = `
+    <div class="modal-bg">
+      <div class="modal-actions no-print">
+        <button class="btn btn-accent" id="btn-print">🖶 Imprimir</button>
+        <button class="btn btn-ghost" style="background:#fff;" id="btn-close-receipt">✕ Cerrar</button>
+      </div>
+      <div class="receipt">
+        <div class="receipt-inner">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;">
+            <img src="${LOGO_ISL}" alt="ISL" style="height:30px;">
+            <div class="rt-small" style="margin-bottom:0;">Resolución 299/11, Anexo I</div>
+          </div>
+          <div class="rt-title">Entrega de ropa de trabajo y elementos de protección personal</div>
+          <table class="rt-info" style="width:100%;margin-bottom:2px;">
+            <tr><td style="width:58%;"><b>Razón Social:</b> ${esc(empresa.razonSocial||'')}</td><td><b>C.U.I.T.:</b> ${esc(empresa.cuit||'—')}</td></tr>
+            <tr><td><b>Dirección:</b> ${esc(empresa.direccion||'—')}</td><td><b>Localidad:</b> ${esc(empresa.localidad||'—')} &nbsp;&nbsp;<b>C.P:</b> ${esc(empresa.cp||'—')} &nbsp;&nbsp;<b>Provincia:</b> ${esc(empresa.provincia||'—')}</td></tr>
+            <tr><td colspan="2"><b>Nombre y Apellido del Trabajador:</b> ${esc(nombreEmp(entrega.empleadoId))} &nbsp;&nbsp;&nbsp;<b>D.N.I.:</b> ${esc(emp.dni||'—')}</td></tr>
+            <tr><td colspan="2"><b>Descripción breve del puesto/s de trabajo:</b> ${esc(emp.puesto||'—')} &nbsp;&nbsp;&nbsp;<b>Obra:</b> ${esc(nombreObra(entrega.obraId))}</td></tr>
+            <tr><td colspan="2" style="font-size:9.5px;font-weight:600;">Elementos de protección personal, necesarios para el trabajador, según el puesto de trabajo:</td></tr>
+          </table>
+          <table class="rt-grid" style="width:100%;margin-bottom:6px;">
+            <thead><tr>
+              <th style="width:3%;">N°</th><th style="width:19%;">Producto</th><th style="width:16%;">Tipo // Modelo</th>
+              <th style="width:13%;">Marca</th><th style="width:11%;">Posee certificación SI // NO</th>
+              <th style="width:7%;">Cantidad</th><th style="width:12%;">Fecha de entrega</th><th style="width:19%;">Firma del trabajador</th>
+            </tr></thead>
+            <tbody>
+              ${filas.map((f,i)=>`<tr>
+                <td style="text-align:center;color:var(--muted);">${i+1}</td>
+                <td>${f?esc(f.art?.denominacion||''):''}</td>
+                <td>${f?esc(f.art?.tipoModelo||''):''}</td>
+                <td>${f?esc(f.art?.marca||''):''}</td>
+                <td style="text-align:center;">${f?esc(f.art?.certificacion||''):''}</td>
+                <td style="text-align:center;font-weight:600;">${f?f.cantidad:''}</td>
+                <td style="text-align:center;">${f?fechaFmt:''}</td>
+                <td></td></tr>`).join('')}
+            </tbody>
+          </table>
+          <div style="border:1px solid var(--ink);padding:8px;font-size:10px;min-height:42px;">
+            <b>Información adicional:</b> ${esc(entrega.observaciones||'')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('btn-print').addEventListener('click', ()=>window.print());
+  document.getElementById('btn-close-receipt').addEventListener('click', ()=>{ state.receipt=null; renderApp(); });
+}
+
+/* ============================================================ HH MENSUALES */
+function renderHH(){
+  return `
+    ${sectionHead("Horas hombre trabajadas","Carga mensual de HH por obra")}
+    <div class="card p4 mb8">
+      <div class="grid-form" style="grid-template-columns:1fr 160px 160px auto;">
+        <label class="field"><span>Obra</span><select id="hh-obra"><option value="">Seleccionar obra…</option>${state.data.Obras.map(o=>`<option value="${o.id}">${esc(o.nombre)}</option>`).join('')}</select></label>
+        <label class="field"><span>Mes</span><input type="month" id="hh-mes" value="${monthNow()}"></label>
+        <label class="field"><span>HH trabajadas</span><input type="number" min="0" id="hh-horas"></label>
+        <button class="btn btn-accent" id="btn-save-hh">💾 Guardar</button>
+      </div>
+    </div>
+    ${state.data.HH.length===0 ? emptyState("Sin registros de HH cargados.") : `
+      <div class="card"><table><thead><tr><th>Obra</th><th>Mes</th><th style="text-align:right;">HH trabajadas</th><th style="width:40px;"></th></tr></thead><tbody>
+      ${[...state.data.HH].sort((a,b)=>b.mes.localeCompare(a.mes)).map(h=>`<tr><td style="font-weight:600;">${esc(nombreObra(h.obraId))}</td><td>${esc(h.mes)}</td>
+        <td style="text-align:right;">${numFmt(num(h.horas))}</td><td class="row-actions"><button data-del-hh="${h.id}">🗑</button></td></tr>`).join('')}
+      </tbody></table></div>`}`;
+}
+attachHandlers.hh = function(){
+  document.getElementById('btn-save-hh').addEventListener('click', async ()=>{
+    const obraId = document.getElementById('hh-obra').value;
+    const mes = document.getElementById('hh-mes').value;
+    const horas = document.getElementById('hh-horas').value;
+    if(!obraId || !mes || !horas){ toast("Completá obra, mes y horas.", true); return; }
+    const existing = state.data.HH.find(h=>h.obraId===obraId && h.mes===mes);
+    let rows;
+    if(existing) rows = state.data.HH.map(h=> h.id===existing.id ? {...h, horas} : h);
+    else rows = [...state.data.HH, {id:uid(), obraId, mes, horas}];
+    try{ await saveEntity('HH', rows); toast("HH guardadas."); renderApp(); }
+    catch(e){ toast("Error: "+e.message, true); }
+  });
+  document.querySelectorAll('[data-del-hh]').forEach(el=>el.addEventListener('click', async ()=>{
+    try{ await saveEntity('HH', state.data.HH.filter(h=>h.id!==el.dataset.delHh)); renderApp(); }
+    catch(e){ toast("Error: "+e.message, true); }
+  }));
+};
+
+/* ============================================================ REPORTES */
+function renderReportes(){
+  const cup = costoUnitPromedio();
+  const mesFiltro = state._mesFiltro || monthNow();
+  const costoPorObra = {};
+  for(const en of state.data.Entregas) costoPorObra[en.obraId] = (costoPorObra[en.obraId]||0) + costoEntrega(en.id,cup);
+  const costoPorObraMes = {};
+  for(const en of state.data.Entregas){
+    const mes = (en.fecha||"").slice(0,7);
+    costoPorObraMes[en.obraId] = costoPorObraMes[en.obraId] || {};
+    costoPorObraMes[en.obraId][mes] = (costoPorObraMes[en.obraId][mes]||0) + costoEntrega(en.id,cup);
+  }
+  const hhPorObraMes = {};
+  for(const h of state.data.HH){ hhPorObraMes[h.obraId] = hhPorObraMes[h.obraId]||{}; hhPorObraMes[h.obraId][h.mes] = num(h.horas); }
+  const filas = state.data.Obras.map(o=>{
+    const costo = (costoPorObraMes[o.id] && costoPorObraMes[o.id][mesFiltro]) || 0;
+    const hh = (hhPorObraMes[o.id] && hhPorObraMes[o.id][mesFiltro]) || 0;
+    return {obra:o, costo, hh, costoPorHH: hh>0 ? costo/hh : null};
+  });
+  const totalCostoMes = filas.reduce((a,f)=>a+f.costo,0);
+  const totalHHMes = filas.reduce((a,f)=>a+f.hh,0);
+  const costoPorArticulo = {};
+  for(const it of state.data.CompraItems) costoPorArticulo[it.articuloId] = (costoPorArticulo[it.articuloId]||0) + num(it.cantidad)*num(it.precioUnitario);
+  const artOrdenados = Object.entries(costoPorArticulo).sort((a,b)=>b[1]-a[1]);
+
+  return `
+    ${sectionHead("Costos e indicadores","Reportes")}
+    <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="card kpi accent"><div class="lbl">Total comprado (histórico)</div><div class="val">${money(costoTotalCompras())}</div></div>
+      <div class="card kpi"><div class="lbl">Total entregado / imputado a obras</div><div class="val">${money(Object.values(costoPorObra).reduce((a,b)=>a+b,0))}</div></div>
+      <div class="card kpi"><div class="lbl">Costo empresa — mes seleccionado</div><div class="val">${money(totalCostoMes)}</div></div>
+    </div>
+    ${sectionHead(null,"Costo por obra y por HH trabajada (mensual)", `<label class="field"><span>Mes</span><input type="month" id="rp-mes" value="${mesFiltro}"></label>`)}
+    <div class="card mb8"><table><thead><tr><th>Obra</th><th style="text-align:right;">Costo EPP del mes</th><th style="text-align:right;">HH trabajadas</th><th style="text-align:right;">Costo por HH</th></tr></thead>
+      <tbody>
+      ${filas.map(f=>`<tr><td style="font-weight:600;">${esc(f.obra.nombre)}</td><td style="text-align:right;">${money(f.costo)}</td>
+        <td style="text-align:right;">${f.hh>0?numFmt(f.hh):'—'}</td><td style="text-align:right;font-weight:600;">${f.costoPorHH!=null?money(f.costoPorHH):'—'}</td></tr>`).join('')}
+      <tr style="background:#FAF9F5;"><td style="font-weight:700;">TOTAL EMPRESA</td><td style="text-align:right;font-weight:700;">${money(totalCostoMes)}</td>
+        <td style="text-align:right;font-weight:700;">${totalHHMes>0?numFmt(totalHHMes):'—'}</td>
+        <td style="text-align:right;font-weight:700;">${totalHHMes>0?money(totalCostoMes/totalHHMes):'—'}</td></tr>
+      </tbody></table></div>
+    ${sectionHead(null,"Costo acumulado por obra (histórico)")}
+    ${Object.keys(costoPorObra).length===0 ? emptyState("Sin entregas registradas.") : `
+      <div class="card mb8"><table><thead><tr><th>Obra</th><th style="text-align:right;">Costo EPP entregado</th></tr></thead><tbody>
+      ${Object.entries(costoPorObra).sort((a,b)=>b[1]-a[1]).map(([oid,c])=>`<tr><td style="font-weight:600;">${esc(nombreObra(oid))}</td><td style="text-align:right;">${money(c)}</td></tr>`).join('')}
+      </tbody></table></div>`}
+    ${sectionHead(null,"Costo de compra por artículo (histórico)")}
+    ${artOrdenados.length===0 ? emptyState("Sin compras registradas.") : `
+      <div class="card"><table><thead><tr><th>Artículo</th><th style="text-align:right;">Costo unitario promedio</th><th style="text-align:right;">Total comprado</th></tr></thead><tbody>
+      ${artOrdenados.map(([aid,t])=>`<tr><td style="font-weight:600;">${esc(nombreArt(aid))}</td><td style="text-align:right;">${money(cup[aid]||0)}</td><td style="text-align:right;">${money(t)}</td></tr>`).join('')}
+      </tbody></table></div>`}`;
+}
+attachHandlers.reportes = function(){
+  document.getElementById('rp-mes').addEventListener('change', (e)=>{ state._mesFiltro = e.target.value; renderApp(); });
+};
+
+/* ============================================================ EMPRESA */
+function renderEmpresa(){
+  const e = state.data.Empresa[0] || {razonSocial:"Instrumental San Lorenzo S.R.L.", cuit:"", direccion:"", localidad:"San Lorenzo", cp:"", provincia:"Santa Fe"};
+  return `
+    ${sectionHead("Encabezado de la planilla oficial","Datos de la empresa")}
+    <div class="card p5" style="max-width:640px;">
+      <div class="muted" style="font-size:12px;margin-bottom:16px;">Estos datos completan el encabezado de la planilla "Entrega de Ropa de Trabajo y EPP" (Resolución SRT 299/11, Anexo I) en cada impresión.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <label class="field" style="grid-column:span 2;"><span>Razón social</span><input id="emp-razon" value="${esc(e.razonSocial)}"></label>
+        <label class="field"><span>C.U.I.T.</span><input id="emp-cuit" value="${esc(e.cuit)}"></label>
+        <label class="field"><span>Provincia</span><input id="emp-prov" value="${esc(e.provincia)}"></label>
+        <label class="field" style="grid-column:span 2;"><span>Dirección</span><input id="emp-dir" value="${esc(e.direccion)}"></label>
+        <label class="field"><span>Localidad</span><input id="emp-loc" value="${esc(e.localidad)}"></label>
+        <label class="field"><span>C.P.</span><input id="emp-cp" value="${esc(e.cp)}"></label>
+      </div>
+      <div style="margin-top:16px;text-align:right;"><button class="btn btn-accent" id="btn-save-empresa">💾 Guardar datos</button></div>
+    </div>`;
+}
+attachHandlers.empresa = function(){
+  document.getElementById('btn-save-empresa').addEventListener('click', async ()=>{
+    const row = {razonSocial:document.getElementById('emp-razon').value, cuit:document.getElementById('emp-cuit').value,
+      direccion:document.getElementById('emp-dir').value, localidad:document.getElementById('emp-loc').value,
+      cp:document.getElementById('emp-cp').value, provincia:document.getElementById('emp-prov').value};
+    try{ await saveEntity('Empresa', [row]); toast("Datos de la empresa guardados."); renderApp(); }
+    catch(e){ toast("Error: "+e.message, true); }
+  });
+};
+
+/* ============================================================ INIT */
+(async function init(){
+  try{
+    await loadAll();
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    renderApp();
+  }catch(err){
+    document.getElementById('loading-text').textContent = "Error al conectar: " + err.message;
+    document.querySelector('.spinner').style.display = 'none';
+  }
+})();
+</script>
+</body>
+</html>
